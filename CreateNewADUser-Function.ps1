@@ -104,6 +104,7 @@ Process {
 
 #Create new account with info inputted
 $NewUser= New-ADUser -Name $CN -displayname $name -GivenName $firstname -Surname $lastname -SamAccountName $username -userprincipalname $UPN2 -AccountPassword (ConvertTo-securestring -Asplaintext "$password" -force) -ChangePasswordAtLogon $true -employeeNumber $employeenum -Path $userOU
+start-sleep -s 1
 set-aduser $username -ChangePasswordAtLogon $true 
 
 #Captures only invoked optional parameters [removes mandatory Firstname,Lastname] and applies to user
@@ -115,9 +116,10 @@ $psboundparameters.remove($_) | out-null
 }
 
 }
+set-aduser $username @PSBoundParameters
 
 #Export info to user CSV (Firstname,Lastname,Username,Employeenumber)
-set-aduser $username @PSBoundParameters
+
 $newline="{0},{1},{2},{3}" -f $firstname,$Lastname,$username,$employeenum
 $newline | Add-Content -Path $path
 }
