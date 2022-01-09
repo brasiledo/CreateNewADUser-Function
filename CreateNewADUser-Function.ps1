@@ -1,8 +1,11 @@
   <# 
 .SYNOPSIS
 Powershell function that creates Active Directory user account with information entered in by the admin.
+
 This script is intended to be used as the only way to create AD Users, 
-when coupled with an additional script that will search ad users employee numbers against existing list and disable rogue accounts (not in list).    
+when coupled with an additional script set up as a scheduled task, that will search ad users employee numbers against the existing list, 
+disable any rogue accounts (that are not in list).  
+
 The script will require a csv with existing AD users and employee numbers -- $PATH var
 
  
