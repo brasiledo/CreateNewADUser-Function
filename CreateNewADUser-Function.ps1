@@ -1,11 +1,19 @@
   <# 
 .SYNOPSIS
 Powershell function that creates Active Directory user account with information entered in by the admin.
+This script is intended to be used as the only way to create AD Users, 
+when coupled with an additional script that will search ad users employee numbers against existing list and disable rogue accounts (not in list).    
+The script will require a csv with existing AD users and employee numbers -- $PATH var
+
  
 .DESCRIPTION
-This will create a user in Active Directory automatically with Powershell.  
-The accounts are created disabled and added to set OU -> $userOU
-Password is set to a standard password defined in this script --> $Password
+-This will create a user in Active Directory automatically with Powershell.  
+-The accounts are created disabled and added to set OU -> $userOU
+-Password is set to a standard password defined in this script --> $Password
+-Checks and appends duplicate names
+-Checks from an existing list of AD users and Employee Numbers, appends the last employee number, finally, exports (FirstName, Lastname, Username, and Employee Number) to csv
+
+ 
 
 This powershell function accepts user inputs as parameters which allows you to mass-add users.
 Additional optional Attributes:
@@ -52,24 +60,24 @@ param (
 [string] $Department,
 [parameter(ValueFromPipeLineByPropertyName)]
 [string] $title,
-[parameter(mandatory=$true,ValueFromPipeLineByPropertyName,helpmessage="enter employee by username")]
+[parameter(ValueFromPipeLineByPropertyName,helpmessage="enter employee by username")]
 [validatescript({try{if(get-aduser $_){$true}}catch{throw "$_ doesn't exist"}})]
 [object] $manager
 
 )
 
 Begin {
-#edit below
+#Edit Below
 $password='P@ssword101'
 $userOU='OU=Automation,DC=domain,DC=local'
+$UPN=$firstname+'.'+$lastname+'@domain.local'
+$path=".\users.csv"
 
 #DO NOT edit below
 $SAM=$firstname.substring(0,1)+$lastname
-$UPN=$firstname+'.'+$lastname+'@teknet.local'
 $name="$firstname $lastname"
 
-#generate employee number
-$path="C:\scripts\new.csv"
+#Generate New Employee Number
 $import=import-csv $path | select -Last 1
 foreach ($item in $import.employeenumber) {
 [int32]$employeenum=$item
@@ -90,24 +98,24 @@ $CN=$Name+'_'+$INC
 }
 }
 Process {
+
 #Create new account with info inputted
-
 $NewUser= New-ADUser -Name $CN -displayname $name -GivenName $firstname -Surname $lastname -SamAccountName $username -userprincipalname $UPN2 -AccountPassword (ConvertTo-securestring -Asplaintext "$password" -force) -ChangePasswordAtLogon $true -employeeNumber $employeenum -Path $userOU
-
 set-aduser $username -ChangePasswordAtLogon $true 
+
+#Captures only invoked optional parameters [removes mandatory Firstname,Lastname] and applies to user
 switch(@($psboundparameters.KEYS)){
     {$_ -in @("firstname","lastname")}{
 
 $psboundparameters.remove($_) | out-null
-}
 
 }
 
-#export info
-end {
+}
+
+#Export info to user CSV (Firstname,Lastname,Username,Employeenumber)
 set-aduser $username @PSBoundParameters
 $newline="{0},{1},{2},{3}" -f $firstname,$Lastname,$username,$employeenum
 $newline | Add-Content -Path $path
-}
 }
 }
