@@ -2,13 +2,14 @@
 .SYNOPSIS
 Powershell function that creates Active Directory user account with information entered in by the admin.
 
-This script is intended to be used as the only way to create AD Users, 
-when coupled with an additional script set up as a scheduled task, that will search ad users employee numbers against the existing list, 
-disable any rogue accounts (that are not in list).  
+Best use case for script:
+This script is intended to be used as the ONLY way to create domain users; 
+use an additional script that queries AD users by employee number, and runs against the existing userDB list of user employee number, disables any rogue accounts (that are not in list).
+This should be setup as a scheduled task that runs hourly. 
+
 
 The script will require a csv with existing AD users and employee numbers -- $PATH var
 
- 
 .DESCRIPTION
 -This will create a user in Active Directory automatically with Powershell.  
 -The accounts are created disabled and added to set OU -> $userOU
@@ -74,7 +75,7 @@ Begin {
 $password='P@ssword101'
 $userOU='OU=Automation,DC=domain,DC=local'
 $UPN=$firstname+'.'+$lastname+'@domain.local'
-$path=".\users.csv"
+$path=".\userDB.csv"
 
 #DO NOT edit below
 $SAM=$firstname.substring(0,1)+$lastname
